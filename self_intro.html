@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>かんたん自己紹介画像ジェネレーター</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      display: flex;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      background: #111827;
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 900px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+      color: #9ca3af;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    input[type="file"] {
+      font-size: 12px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    button {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      background: #3b82f6;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    button:hover {
+      filter: brightness(1.1);
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    .preview-box {
+      background: #020617;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    #facePreview {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #4b5563;
+      margin-bottom: 8px;
+    }
+
+    canvas {
+      width: 100%;
+      border-radius: 12px;
+      margin-top: 8px;
+      background: #0b1120;
+    }
+
+    a.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- 左：入力エリア -->
+    <div>
+      <h1>誰でもできる自己紹介画像メーカー</h1>
+
+      <div class="field">
+        <label for="nameInput">名前</label>
+        <input id="nameInput" type="text" placeholder="例：河野 浩喜">
+      </div>
+
+      <div class="field">
+        <label for="descInput">ひとこと自己紹介</label>
+        <textarea id="descInput" placeholder="例：AIとセキュリティに興味がある大学生です。趣味はゲームと散歩です。"></textarea>
+        <div class="hint">※ 今は1〜2行くらい（短め）を想定しています。</div>
+      </div>
+
+      <div class="field">
+        <label for="imageInput">顔写真</label>
+        <input id="imageInput" type="file" accept="image/*">
+        <div class="hint">※ 個人情報なので公開アプリにする場合は保存しない設計にすると安全です。</div>
+      </div>
+
+      <button id="generateBtn">自己紹介画像を作る＆ダウンロード</button>
+      <a id="downloadLink" class="hidden">ダウンロード</a>
+    </div>
+
+    <!-- 右：プレビュー＆キャンバス -->
+    <div class="preview-box">
+      <p style="font-size:13px; color:#9ca3af; margin-bottom:4px;">プレビュー（イメージ）</p>
+      <img id="facePreview" src="" alt="顔画像プレビュー" />
+      <canvas id="cardCanvas" width="800" height="450"></canvas>
+      <div class="hint">※ 実際にダウンロードされる画像はこのキャンバスの内容です。</div>
+    </div>
+  </div>
+
+  <script>
+    const imageInput = document.getElementById('imageInput');
+    const facePreview = document.getElementById('facePreview');
+    const generateBtn = document.getElementById('generateBtn');
+    const downloadLink = document.getElementById('downloadLink');
+    const canvas = document.getElementById('cardCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let uploadedImg = null;
+
+    // 画像アップロード → プレビュー表示
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          uploadedImg = img;
+          facePreview.src = img.src;
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // 自己紹介カード描画
+    function drawIntroCard() {
+      const name = document.getElementById('nameInput').value || 'ななしさん';
+      const desc = document.getElementById('descInput').value || 'よろしくお願いします！';
+
+      const W = 800;
+      const H = 450;
+      canvas.width = W;
+      canvas.height = H;
+
+      // 背景
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, W, H);
+
+      // グラデーションパネル風
+      const grad = ctx.createLinearGradient(0, 0, W, H);
+      grad.addColorStop(0, '#1e293b');
+      grad.addColorStop(1, '#020617');
+      ctx.fillStyle = grad;
+      ctx.fillRect(20, 20, W - 40, H - 40);
+
+      // 左上：アイコンエリア
+      const centerX = 180;
+      const centerY = 170;
+      const radius = 100;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+
+      if (uploadedImg) {
+        // 顔画像を丸型に切り抜き
+        ctx.drawImage(uploadedImg, centerX - radius, centerY - radius, radius * 2, radius * 2);
+      } else {
+        // プレースホルダー
+        ctx.fillStyle = '#111827';
+        ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+        ctx.fillStyle = '#4b5563';
+        ctx.font = 'bold 40px system-ui';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('No\nImage', centerX, centerY); // 改行は効かないので「なんとなく」のプレースホルダー
+      }
+      ctx.restore();
+
+      // 丸の縁
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      // 名前
+      ctx.fillStyle = '#e5e7eb';
+      ctx.font = 'bold 40px system-ui';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(name, 340, 80);
+
+      // サブタイトル
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '16px system-ui';
+      ctx.fillText('Self Introduction', 340, 130);
+
+      // 自己紹介文（シンプルに2行くらいまでを想定）
+      ctx.fillStyle = '#e5e7eb';
+      ctx.font = '20px system-ui';
+
+      // ざっくり文字数で折り返し（日本語なので超雑ですがサンプル用）
+      const maxCharsPerLine = 18;
+      const lines = [];
+      let current = '';
+      for (let i = 0; i < desc.length; i++) {
+        current += desc[i];
+        if (current.length >= maxCharsPerLine || i === desc.length - 1) {
+          lines.push(current);
+          current = '';
+        }
+        if (lines.length >= 3) break; // 3行までに制限
+      }
+
+      const startY = 180;
+      const lineHeight = 32;
+      lines.forEach((line, index) => {
+        ctx.fillText(line, 340, startY + index * lineHeight);
+      });
+
+      // フッター
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '12px system-ui';
+      ctx.textAlign = 'right';
+      ctx.fillText('Generated with 自己紹介画像メーカー', W - 40, H - 40);
+    }
+
+    // ボタンクリック → 描画 & ダウンロード
+    generateBtn.addEventListener('click', () => {
+      drawIntroCard();
+
+      const dataURL = canvas.toDataURL('image/png');
+      downloadLink.href = dataURL;
+      downloadLink.download = 'self_intro.png';
+      downloadLink.classList.remove('hidden');
+
+      // 自動ダウンロード（多くのブラウザで動くはず）
+      downloadLink.click();
+    });
+  </script>
+</body>
+</html>
