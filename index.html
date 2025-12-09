@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>自己紹介カードジェネレーター（多テンプレ対応）</title>
+  <title>自己紹介カードジェネレーター（テンプレ＋アイコン調整）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- 和文フォント -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,17 +11,17 @@
 
   <style>
     :root {
-      /* デフォルトは「西洋（モダン）」寄りの色 */
+      /* デフォルトはモダン系 */
       --bg: #0f172a;
       --paper: #020617;
       --ink: #e5e7eb;
       --muted: #9ca3af;
       --accent: #2563eb;
-      --accent-soft: #1f2937;
+      --accent-soft: #111827;
       --border: #374151;
     }
 
-    /* テーマ別に変数を上書き */
+    /* 和風 */
     body[data-theme="wa"] {
       --bg: #f5f0e6;
       --paper: #fffaf0;
@@ -32,6 +32,18 @@
       --border: #e2c999;
     }
 
+    /* 楓（オータム和風） */
+    body[data-theme="kaede"] {
+      --bg: #f9f3ea;
+      --paper: #fffaf5;
+      --ink: #3b2f2f;
+      --muted: #9b6b4b;
+      --accent: #d97745;
+      --accent-soft: #fde7cf;
+      --border: #f1c9a5;
+    }
+
+    /* モダン（西洋） */
     body[data-theme="western"] {
       --bg: #0f172a;
       --paper: #020617;
@@ -42,31 +54,30 @@
       --border: #374151;
     }
 
+    /* 日の丸 */
     body[data-theme="hinomaru"] {
       --bg: #f9fafb;
       --paper: #ffffff;
       --ink: #111827;
       --muted: #6b7280;
-      --accent: #dc2626;      /* 赤 */
+      --accent: #dc2626;
       --accent-soft: #fee2e2;
       --border: #e5e7eb;
     }
 
+    /* 単色・ダブルカラーは白背景ベース */
     body[data-theme="solid"],
     body[data-theme="dual"] {
-      /* カラーはJSから上書きするけど、初期値だけ指定 */
-      --bg: #020617;
-      --paper: #020617;
-      --ink: #e5e7eb;
-      --muted: #9ca3af;
-      --accent: #10b981;
-      --accent-soft: #111827;
-      --border: #374151;
+      --bg: #f5f5f5;
+      --paper: #ffffff;
+      --ink: #222222;
+      --muted: #666666;
+      --accent: #c05621;      /* JSで上書きされる */
+      --accent-soft: #f3f4f6;
+      --border: #e5e7eb;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -152,9 +163,7 @@
       color: var(--muted);
     }
 
-    .field {
-      margin-bottom: 8px;
-    }
+    .field { margin-bottom: 8px; }
 
     input[type="text"],
     textarea,
@@ -195,11 +204,6 @@
       flex-wrap: wrap;
     }
 
-    .inline-group small {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
     .checkbox-label {
       display: inline-flex;
       align-items: center;
@@ -210,9 +214,7 @@
       user-select: none;
     }
 
-    .checkbox-label input {
-      accent-color: var(--accent);
-    }
+    .checkbox-label input { accent-color: var(--accent); }
 
     button {
       padding: 9px 16px;
@@ -228,13 +230,8 @@
       transition: filter 0.15s ease, transform 0.15s ease, background 0.2s ease;
     }
 
-    button:hover {
-      filter: brightness(1.05);
-    }
-
-    button:active {
-      transform: translateY(1px);
-    }
+    button:hover { filter: brightness(1.05); }
+    button:active { transform: translateY(1px); }
 
     .hint {
       font-size: 10px;
@@ -275,9 +272,7 @@
       background: #000;
     }
 
-    a.hidden {
-      display: none;
-    }
+    a.hidden { display: none; }
 
     .gender-group {
       display: flex;
@@ -295,9 +290,7 @@
       margin-bottom: 0;
     }
 
-    .gender-group input {
-      accent-color: var(--accent);
-    }
+    .gender-group input { accent-color: var(--accent); }
 
     .age-select {
       flex: 1;
@@ -315,9 +308,7 @@
         flex-direction: row;
         align-items: center;
       }
-      .location-row input[type="text"] {
-        flex: 1;
-      }
+      .location-row input[type="text"] { flex: 1; }
     }
 
     .theme-row {
@@ -345,10 +336,31 @@
       cursor: pointer;
     }
 
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .slider-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .slider-value {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    input[type="range"] { width: 100%; }
+
     @media (max-width: 480px) {
-      h1 {
-        font-size: 18px;
-      }
+      h1 { font-size: 18px; }
       button {
         width: 100%;
         justify-content: center;
@@ -363,7 +375,7 @@
       <!-- 左：入力エリア -->
       <div>
         <h1>自己紹介カードジェネレーター</h1>
-        <div class="subtitle">テンプレを選んで、アイコンとテキストを入れるだけでプロフィール画像を作成。</div>
+        <div class="subtitle">テンプレとアイコン位置を調整して、あなただけのプロフィール画像を作成。</div>
 
         <div class="section-title">テンプレート・テーマ</div>
 
@@ -372,10 +384,11 @@
           <div class="theme-row">
             <select id="themeSelect">
               <option value="wa">和風</option>
-              <option value="western">西洋（モダン）</option>
+              <option value="kaede">楓（オータム和風）</option>
+              <option value="western">モダン</option>
               <option value="hinomaru">日の丸</option>
-              <option value="solid">単色カラー</option>
-              <option value="dual">ダブルカラー</option>
+              <option value="solid">単色カラー（和風レイアウト）</option>
+              <option value="dual">ダブルカラー（和風レイアウト）</option>
             </select>
 
             <div class="color-input-wrapper">
@@ -388,22 +401,54 @@
             </div>
           </div>
           <div class="hint">
-            ・和風／西洋／日の丸は固定デザイン<br>
-            ・単色カラー／ダブルカラーは「色１」「色２」で自由にカスタムできます
+            ・和風 / 楓 / モダン / 日の丸はデザイン固定<br>
+            ・単色 / ダブルカラーは「和風レイアウト」で、色１・色２だけ変えられます
           </div>
+        </div>
+
+        <div class="section-title">アイコン画像</div>
+
+        <div class="field">
+          <label for="iconInput">アイコン画像のアップロード</label>
+          <input id="iconInput" type="file" accept="image/*">
+          <div class="hint">※ 顔写真でもイラストでもOK。画像はブラウザ内だけで使用されます。</div>
+        </div>
+
+        <!-- アイコン位置&サイズ調整 -->
+        <div class="field">
+          <div class="slider-row">
+            <div class="slider-label-row">
+              <span>アイコン位置（横）</span>
+              <span class="slider-value">X: <span id="iconPosXValue">0</span></span>
+            </div>
+            <input type="range" id="iconPosX" min="-150" max="150" value="0">
+          </div>
+        </div>
+        <div class="field">
+          <div class="slider-row">
+            <div class="slider-label-row">
+              <span>アイコン位置（縦）</span>
+              <span class="slider-value">Y: <span id="iconPosYValue">0</span></span>
+            </div>
+            <input type="range" id="iconPosY" min="-150" max="150" value="0">
+          </div>
+        </div>
+        <div class="field">
+          <div class="slider-row">
+            <div class="slider-label-row">
+              <span>アイコン拡大（50〜150％）</span>
+              <span class="slider-value">拡大: <span id="iconScaleValue">100</span>%</span>
+            </div>
+            <input type="range" id="iconScale" min="50" max="150" value="100">
+          </div>
+          <div class="hint">※ 画像の縦横比は保ったまま拡大・縮小されるので、ゆがみません。</div>
         </div>
 
         <div class="section-title">基本情報</div>
 
         <div class="field">
-          <label for="iconInput">アイコン画像</label>
-          <input id="iconInput" type="file" accept="image/*">
-          <div class="hint">※ 顔写真でもイラストでもOK。画像はブラウザ内だけで使用されます。</div>
-        </div>
-
-        <div class="field">
           <label for="nicknameInput">ニックネーム</label>
-          <input id="nicknameInput" type="text" placeholder="例：山田太郎/うっちー ">
+          <input id="nicknameInput" type="text" placeholder="例：ひろっきー / こうの">
         </div>
 
         <div class="field">
@@ -466,7 +511,7 @@
 
       <!-- 右：プレビュー＆キャンバス -->
       <div class="preview-box">
-        <div class="preview-caption">プレビュー（テーマに応じて見た目が変わります）</div>
+        <div class="preview-caption">プレビュー（テーマとアイコン位置に応じて変わります）</div>
         <img id="facePreview" src="" alt="アイコンのプレビュー">
         <canvas id="cardCanvas" width="800" height="450"></canvas>
         <div class="hint">※ 実際にダウンロードされる画像は、このキャンバスの内容です。</div>
@@ -486,6 +531,13 @@
     const color1Input = document.getElementById('color1');
     const color2Input = document.getElementById('color2');
 
+    const iconPosXInput = document.getElementById('iconPosX');
+    const iconPosYInput = document.getElementById('iconPosY');
+    const iconScaleInput = document.getElementById('iconScale');
+    const iconPosXValue = document.getElementById('iconPosXValue');
+    const iconPosYValue = document.getElementById('iconPosYValue');
+    const iconScaleValue = document.getElementById('iconScaleValue');
+
     let uploadedImg = null;
 
     // 年齢プルダウン（10〜80歳）
@@ -503,6 +555,12 @@
       }
     })();
 
+    function updateIconLabels() {
+      iconPosXValue.textContent = iconPosXInput.value;
+      iconPosYValue.textContent = iconPosYInput.value;
+      iconScaleValue.textContent = iconScaleInput.value;
+    }
+
     // アイコン画像アップロード → プレビュー表示
     iconInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -514,6 +572,7 @@
         img.onload = () => {
           uploadedImg = img;
           facePreview.src = img.src;
+          drawIntroCard();
         };
         img.src = ev.target.result;
       };
@@ -524,31 +583,30 @@
     themeSelect.addEventListener('change', () => {
       const theme = themeSelect.value;
       document.body.setAttribute('data-theme', theme);
-
-      // 単色・ダブルカラーのときは選んだ色を CSS 変数に反映
       applyCustomColors();
+      drawIntroCard();
     });
 
-    color1Input.addEventListener('input', applyCustomColors);
-    color2Input.addEventListener('input', applyCustomColors);
+    color1Input.addEventListener('input', () => {
+      applyCustomColors();
+      drawIntroCard();
+    });
+    color2Input.addEventListener('input', () => {
+      applyCustomColors();
+      drawIntroCard();
+    });
 
     function applyCustomColors() {
       const theme = themeSelect.value;
       const c1 = color1Input.value;
       const c2 = color2Input.value;
 
-      if (theme === 'solid') {
+      if (theme === 'solid' || theme === 'dual') {
         document.body.style.setProperty('--accent', c1);
-        document.body.style.setProperty('--accent-soft', '#111827');
-        document.body.style.setProperty('--bg', '#020617');
-        document.body.style.setProperty('--paper', '#020617');
-      } else if (theme === 'dual') {
-        document.body.style.setProperty('--accent', c1);
-        document.body.style.setProperty('--accent-soft', '#111827');
-        document.body.style.setProperty('--bg', '#020617');
-        document.body.style.setProperty('--paper', '#020617');
+        document.body.style.setProperty('--accent-soft', '#f3f4f6');
+        document.body.style.setProperty('--bg', '#f5f5f5');
+        document.body.style.setProperty('--paper', '#ffffff');
       } else {
-        // 他テーマでは style 上書きをリセット（簡易的に）
         document.body.style.removeProperty('--accent');
         document.body.style.removeProperty('--accent-soft');
         document.body.style.removeProperty('--bg');
@@ -556,7 +614,7 @@
       }
     }
 
-    // 日本語用ざっくり折り返し（字数ベース）
+    // 日本語用ざっくり折り返し
     function wrapTextJP(text, maxChars, maxLines) {
       if (!text) return [];
       const lines = [];
@@ -570,7 +628,6 @@
         }
         if (maxLines && lines.length >= maxLines) break;
       }
-
       return lines;
     }
 
@@ -587,7 +644,6 @@
       const genderNode = document.querySelector('input[name="gender"]:checked');
       const gender = genderNode ? genderNode.value : 'ひみつ';
 
-      // 文言作り
       let ageText;
       if (ageHidden) {
         ageText = '年齢：ひみつ';
@@ -606,20 +662,23 @@
         locText = '住んでいる場所：未設定';
       }
 
-      return {
-        nickname,
-        ageText,
-        gender,
-        locText,
-        hobby,
-        game,
-        message
-      };
+      return { nickname, ageText, gender, locText, hobby, game, message };
     }
 
-    /* ===== 各テーマごとの描画関数 ===== */
+    function getIconOptions() {
+      const offsetX = parseInt(iconPosXInput.value || '0', 10);
+      const offsetY = parseInt(iconPosYInput.value || '0', 10);
+      const scalePercent = parseInt(iconScaleInput.value || '100', 10);
+      const scale = scalePercent / 100;
+      return { offsetX, offsetY, scale };
+    }
 
-    function drawCommonIcon(centerX, centerY, radius, placeholderStyle) {
+    /* 共通：アイコン描画（アスペクト比維持） */
+    function drawCommonIcon(centerX, centerY, radius, placeholderStyle, iconOpts) {
+      const offsetX = iconOpts?.offsetX || 0;
+      const offsetY = iconOpts?.offsetY || 0;
+      const userScale = iconOpts?.scale || 1;
+
       ctx.save();
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
@@ -627,7 +686,19 @@
       ctx.clip();
 
       if (uploadedImg) {
-        ctx.drawImage(uploadedImg, centerX - radius, centerY - radius, radius * 2, radius * 2);
+        const iw = uploadedImg.width;
+        const ih = uploadedImg.height;
+
+        const baseScale = Math.min((radius * 2) / iw, (radius * 2) / ih);
+        const s = baseScale * userScale;
+
+        const drawW = iw * s;
+        const drawH = ih * s;
+
+        const dx = centerX - drawW / 2 + offsetX;
+        const dy = centerY - drawH / 2 + offsetY;
+
+        ctx.drawImage(uploadedImg, dx, dy, drawW, drawH);
       } else {
         ctx.fillStyle = placeholderStyle.bg;
         ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
@@ -637,6 +708,7 @@
         ctx.textBaseline = 'middle';
         ctx.fillText(placeholderStyle.text, centerX, centerY);
       }
+
       ctx.restore();
 
       ctx.beginPath();
@@ -646,7 +718,8 @@
       ctx.stroke();
     }
 
-    function drawWaTheme(values) {
+    /* 和風（固定色） */
+    function drawWaTheme(values, iconOpts) {
       const W = canvas.width;
       const H = canvas.height;
 
@@ -669,7 +742,7 @@
         font: 'bold 26px "Noto Sans JP", system-ui',
         text: 'No Image',
         border: '#c56a32'
-      });
+      }, iconOpts);
 
       ctx.fillStyle = '#f6e2c3';
       ctx.fillRect(280, 40, W - 340, 46);
@@ -749,7 +822,224 @@
       ctx.fillText('和風・自己紹介カード', W - 36, H - 30);
     }
 
-    function drawWesternTheme(values) {
+    /* 楓（オータム和風） */
+    function drawKaedeTheme(values, iconOpts) {
+      const W = canvas.width;
+      const H = canvas.height;
+
+      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+      bgGrad.addColorStop(0, '#fff7ec');
+      bgGrad.addColorStop(0.5, '#fde0c2');
+      bgGrad.addColorStop(1, '#f8b4a1');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.strokeStyle = '#f1c9a5';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(10, 10, W - 20, H - 20);
+
+      ctx.fillStyle = '#fffaf5';
+      ctx.fillRect(26, 26, W - 52, H - 52);
+
+      // 左側に縦の紅葉アクセント帯
+      ctx.fillStyle = '#f97316';
+      ctx.fillRect(40, 40, 40, H - 80);
+      ctx.fillStyle = '#ea580c';
+      ctx.fillRect(50, 40, 8, H - 80);
+
+      drawCommonIcon(160, 165, 90, {
+        bg: '#fde7cf',
+        fg: '#9b6b4b',
+        font: 'bold 26px "Noto Sans JP", system-ui',
+        text: 'No Image',
+        border: '#ea580c'
+      }, iconOpts);
+
+      ctx.fillStyle = '#f97316';
+      ctx.fillRect(280, 40, W - 340, 46);
+      ctx.fillStyle = '#fff7ed';
+      ctx.font = 'bold 22px "Noto Sans JP", system-ui';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('自己紹介 - 楓', 300, 63);
+
+      ctx.fillStyle = '#3b2f2f';
+      ctx.font = 'bold 34px "Noto Sans JP", system-ui';
+      ctx.fillText(values.nickname, 280, 120);
+
+      ctx.fillStyle = '#d97745';
+      ctx.font = '14px "Noto Sans JP", system-ui';
+      ctx.fillText('基本情報', 280, 150);
+
+      ctx.fillStyle = '#3b2f2f';
+      ctx.font = '16px "Noto Sans JP", system-ui';
+
+      const baseY = 178;
+      const lineH = 26;
+
+      ctx.fillText(values.ageText, 280, baseY);
+      ctx.fillText('性別：' + values.gender, 280, baseY + lineH);
+      ctx.fillText(values.locText, 280, baseY + lineH * 2);
+
+      ctx.strokeStyle = '#f1c9a5';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(280, baseY + lineH * 2 + 12);
+      ctx.lineTo(W - 40, baseY + lineH * 2 + 12);
+      ctx.stroke();
+
+      let textY = baseY + lineH * 2 + 36;
+
+      ctx.fillStyle = '#d97745';
+      ctx.font = '14px "Noto Sans JP", system-ui';
+      ctx.fillText('趣味', 280, textY);
+      ctx.fillStyle = '#3b2f2f';
+      ctx.font = '15px "Noto Sans JP", system-ui';
+
+      const hobbyLines = wrapTextJP(values.hobby || '未入力', 18, 2);
+      hobbyLines.forEach((line, i) => {
+        ctx.fillText('・' + line, 280, textY + 22 + i * 22);
+      });
+
+      textY += 22 * (Math.max(hobbyLines.length, 1) + 1) + 6;
+
+      ctx.fillStyle = '#d97745';
+      ctx.font = '14px "Noto Sans JP", system-ui';
+      ctx.fillText('やっているゲーム', 280, textY);
+      ctx.fillStyle = '#3b2f2f';
+      ctx.font = '15px "Noto Sans JP", system-ui';
+
+      const gameLines = wrapTextJP(values.game || '未入力', 18, 2);
+      gameLines.forEach((line, i) => {
+        ctx.fillText('・' + line, 280, textY + 22 + i * 22);
+      });
+
+      textY += 22 * (Math.max(gameLines.length, 1) + 1) + 6;
+
+      ctx.fillStyle = '#d97745';
+      ctx.font = '14px "Noto Sans JP", system-ui';
+      ctx.fillText('みんなにひとこと', 280, textY);
+      ctx.fillStyle = '#3b2f2f';
+      ctx.font = '15px "Noto Sans JP", system-ui';
+
+      const msgLines = wrapTextJP(values.message || 'よろしくお願いします！', 18, 2);
+      msgLines.forEach((line, i) => {
+        ctx.fillText('「' + line + (i === msgLines.length - 1 ? '」' : ''), 280, textY + 22 + i * 22);
+      });
+
+      ctx.fillStyle = '#9b6b4b';
+      ctx.font = '11px "Noto Sans JP", system-ui';
+      ctx.textAlign = 'right';
+      ctx.fillText('楓・オータム和風カード', W - 36, H - 30);
+    }
+
+    /* 和風レイアウト＋色カスタム（単色・ダブル） */
+    function drawWaColorTheme(values, iconOpts, c1, c2) {
+      const W = canvas.width;
+      const H = canvas.height;
+
+      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+      const bgAccent = c2 || '#ffffff';
+      bgGrad.addColorStop(0, '#ffffff');
+      bgGrad.addColorStop(1, bgAccent);
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(10, 10, W - 20, H - 20);
+
+      ctx.fillStyle = '#fffdf7';
+      ctx.fillRect(26, 26, W - 52, H - 52);
+
+      drawCommonIcon(160, 165, 90, {
+        bg: '#f3f4f6',
+        fg: '#9ca3af',
+        font: 'bold 20px "Noto Sans JP", system-ui',
+        text: 'No Image',
+        border: c1
+      }, iconOpts);
+
+      ctx.fillStyle = c1;
+      ctx.fillRect(280, 40, W - 340, 46);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 22px "Noto Sans JP", system-ui';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('自己紹介', 300, 63);
+
+      ctx.fillStyle = '#222222';
+      ctx.font = 'bold 34px "Noto Sans JP", system-ui';
+      ctx.fillText(values.nickname, 280, 120);
+
+      ctx.fillStyle = c1;
+      ctx.font = '14px "Noto Sans JP", system-ui';
+      ctx.fillText('基本情報', 280, 150);
+
+      ctx.fillStyle = '#333333';
+      ctx.font = '16px "Noto Sans JP", system-ui';
+
+      const baseY = 178;
+      const lineH = 26;
+
+      ctx.fillText(values.ageText, 280, baseY);
+      ctx.fillText('性別：' + values.gender, 280, baseY + lineH);
+      ctx.fillText(values.locText, 280, baseY + lineH * 2);
+
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(280, baseY + lineH * 2 + 12);
+      ctx.lineTo(W - 40, baseY + lineH * 2 + 12);
+      ctx.stroke();
+
+      let textY = baseY + lineH * 2 + 36;
+
+      ctx.fillStyle = c1;
+      ctx.font = '14px "Noto Sans JP", system-ui';
+      ctx.fillText('趣味', 280, textY);
+      ctx.fillStyle = '#333333';
+      ctx.font = '15px "Noto Sans JP", system-ui';
+
+      const hobbyLines = wrapTextJP(values.hobby || '未入力', 18, 2);
+      hobbyLines.forEach((line, i) => {
+        ctx.fillText('・' + line, 280, textY + 22 + i * 22);
+      });
+
+      textY += 22 * (Math.max(hobbyLines.length, 1) + 1) + 6;
+
+      ctx.fillStyle = c1;
+      ctx.font = '14px "Noto Sans JP", system-ui';
+      ctx.fillText('やっているゲーム', 280, textY);
+      ctx.fillStyle = '#333333';
+      ctx.font = '15px "Noto Sans JP", system-ui';
+
+      const gameLines = wrapTextJP(values.game || '未入力', 18, 2);
+      gameLines.forEach((line, i) => {
+        ctx.fillText('・' + line, 280, textY + 22 + i * 22);
+      });
+
+      textY += 22 * (Math.max(gameLines.length, 1) + 1) + 6;
+
+      ctx.fillStyle = c1;
+      ctx.font = '14px "Noto Sans JP", system-ui';
+      ctx.fillText('みんなにひとこと', 280, textY);
+      ctx.fillStyle = '#333333';
+      ctx.font = '15px "Noto Sans JP", system-ui';
+
+      const msgLines = wrapTextJP(values.message || 'よろしくお願いします！', 18, 2);
+      msgLines.forEach((line, i) => {
+        ctx.fillText('「' + line + (i === msgLines.length - 1 ? '」' : ''), 280, textY + 22 + i * 22);
+      });
+
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '11px "Noto Sans JP", system-ui';
+      ctx.textAlign = 'right';
+      ctx.fillText('Custom Color Intro Card', W - 36, H - 30);
+    }
+
+    /* モダン */
+    function drawWesternTheme(values, iconOpts) {
       const W = canvas.width;
       const H = canvas.height;
 
@@ -774,7 +1064,7 @@
         font: 'bold 20px "Noto Sans JP", system-ui',
         text: 'No Image',
         border: '#3b82f6'
-      });
+      }, iconOpts);
 
       ctx.fillStyle = '#111827';
       ctx.fillRect(280, 40, W - 320, 40);
@@ -853,7 +1143,8 @@
       ctx.fillText('Modern Profile Card', W - 36, H - 28);
     }
 
-    function drawHinomaruTheme(values) {
+    /* 日の丸 */
+    function drawHinomaruTheme(values, iconOpts) {
       const W = canvas.width;
       const H = canvas.height;
 
@@ -871,7 +1162,7 @@
         font: 'bold 18px "Noto Sans JP", system-ui',
         text: 'No Image',
         border: '#fee2e2'
-      });
+      }, iconOpts);
 
       ctx.fillStyle = '#111827';
       ctx.font = 'bold 32px "Noto Sans JP", system-ui';
@@ -881,12 +1172,7 @@
       ctx.fillStyle = '#4b5563';
       ctx.font = '15px "Noto Sans JP", system-ui';
 
-      const lines = [
-        values.ageText,
-        '性別：' + values.gender,
-        values.locText
-      ];
-
+      const lines = [values.ageText, '性別：' + values.gender, values.locText];
       lines.forEach((t, i) => {
         ctx.fillText(t, W / 2, H - 120 + i * 20);
       });
@@ -909,131 +1195,7 @@
       ctx.fillText('Hinomaru Style Intro Card', W - 16, 18);
     }
 
-    function drawSolidTheme(values, c1) {
-      const W = canvas.width;
-      const H = canvas.height;
-
-      ctx.fillStyle = c1;
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.fillStyle = 'rgba(0,0,0,0.25)';
-      ctx.fillRect(24, 24, W - 48, H - 48);
-
-      ctx.fillStyle = 'rgba(0,0,0,0.45)';
-      ctx.fillRect(40, 40, W - 80, H - 80);
-
-      drawCommonIcon(150, 150, 80, {
-        bg: 'rgba(0,0,0,0.3)',
-        fg: 'rgba(255,255,255,0.7)',
-        font: 'bold 18px "Noto Sans JP", system-ui',
-        text: 'No Image',
-        border: 'rgba(255,255,255,0.65)'
-      });
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 30px "Noto Sans JP", system-ui';
-      ctx.textAlign = 'left';
-      ctx.fillText(values.nickname, 260, 110);
-
-      ctx.font = '15px "Noto Sans JP", system-ui';
-      ctx.fillText(values.ageText, 260, 142);
-      ctx.fillText('性別：' + values.gender, 260, 166);
-      ctx.fillText(values.locText, 260, 190);
-
-      let y = 220;
-      ctx.font = '14px "Noto Sans JP", system-ui';
-
-      const hobbyLines = wrapTextJP(values.hobby || '未入力', 22, 2);
-      ctx.fillText('趣味：', 260, y);
-      hobbyLines.forEach((line, i) => {
-        ctx.fillText(line, 260 + 40, y + i * 20);
-      });
-
-      y += 20 * (Math.max(hobbyLines.length, 1) + 1);
-
-      const gameLines = wrapTextJP(values.game || '未入力', 22, 2);
-      ctx.fillText('ゲーム：', 260, y);
-      gameLines.forEach((line, i) => {
-        ctx.fillText(line, 260 + 46, y + i * 20);
-      });
-
-      y += 20 * (Math.max(gameLines.length, 1) + 1);
-
-      const msgLines = wrapTextJP(values.message || 'よろしくお願いします！', 22, 2);
-      ctx.fillText('ひとこと：', 260, y);
-      msgLines.forEach((line, i) => {
-        ctx.fillText(line, 260 + 62, y + i * 20);
-      });
-
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-      ctx.font = '11px "Noto Sans JP", system-ui';
-      ctx.textAlign = 'right';
-      ctx.fillText('Solid Color Intro Card', W - 30, H - 24);
-    }
-
-    function drawDualTheme(values, c1, c2) {
-      const W = canvas.width;
-      const H = canvas.height;
-
-      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
-      bgGrad.addColorStop(0, c1);
-      bgGrad.addColorStop(1, c2);
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.fillStyle = 'rgba(0,0,0,0.35)';
-      ctx.fillRect(32, 32, W - 64, H - 64);
-
-      drawCommonIcon(150, 150, 80, {
-        bg: 'rgba(15,23,42,0.8)',
-        fg: 'rgba(148,163,184,0.9)',
-        font: 'bold 18px "Noto Sans JP", system-ui',
-        text: 'No Image',
-        border: 'rgba(248,250,252,0.9)'
-      });
-
-      ctx.fillStyle = '#f9fafb';
-      ctx.font = 'bold 30px "Noto Sans JP", system-ui';
-      ctx.textAlign = 'left';
-      ctx.fillText(values.nickname, 260, 110);
-
-      ctx.font = '15px "Noto Sans JP", system-ui';
-      ctx.fillText(values.ageText + ' | 性別：' + values.gender, 260, 140);
-      ctx.fillText(values.locText, 260, 164);
-
-      ctx.fillStyle = 'rgba(226,232,240,0.95)';
-      ctx.font = '14px "Noto Sans JP", system-ui';
-
-      let y = 198;
-      const hobbyLines = wrapTextJP(values.hobby || '未入力', 22, 2);
-      ctx.fillText('趣味：', 260, y);
-      hobbyLines.forEach((line, i) => {
-        ctx.fillText(line, 260 + 40, y + i * 20);
-      });
-
-      y += 20 * (Math.max(hobbyLines.length, 1) + 1);
-
-      const gameLines = wrapTextJP(values.game || '未入力', 22, 2);
-      ctx.fillText('ゲーム：', 260, y);
-      gameLines.forEach((line, i) => {
-        ctx.fillText(line, 260 + 46, y + i * 20);
-      });
-
-      y += 20 * (Math.max(gameLines.length, 1) + 1);
-
-      const msgLines = wrapTextJP(values.message || 'よろしくお願いします！', 22, 2);
-      ctx.fillText('ひとこと：', 260, y);
-      msgLines.forEach((line, i) => {
-        ctx.fillText(line, 260 + 62, y + i * 20);
-      });
-
-      ctx.fillStyle = 'rgba(226,232,240,0.9)';
-      ctx.font = '11px "Noto Sans JP", system-ui';
-      ctx.textAlign = 'right';
-      ctx.fillText('Dual Color Intro Card', W - 30, H - 24);
-    }
-
-    // メイン描画スイッチ
+    /* メイン描画 */
     function drawIntroCard() {
       const W = 800;
       const H = 450;
@@ -1044,45 +1206,61 @@
       const theme = themeSelect.value;
       const c1 = color1Input.value;
       const c2 = color2Input.value;
+      const iconOpts = getIconOptions();
 
       if (theme === 'wa') {
-        drawWaTheme(values);
+        drawWaTheme(values, iconOpts);
+      } else if (theme === 'kaede') {
+        drawKaedeTheme(values, iconOpts);
       } else if (theme === 'western') {
-        drawWesternTheme(values);
+        drawWesternTheme(values, iconOpts);
       } else if (theme === 'hinomaru') {
-        drawHinomaruTheme(values);
+        drawHinomaruTheme(values, iconOpts);
       } else if (theme === 'solid') {
-        drawSolidTheme(values, c1);
+        drawWaColorTheme(values, iconOpts, c1, null);
       } else if (theme === 'dual') {
-        drawDualTheme(values, c1, c2);
+        drawWaColorTheme(values, iconOpts, c1, c2);
       }
     }
 
-    // 初期状態：和風テーマに合わせて描画しておく
+    // 初期描画＆ラベル
     drawIntroCard();
+    applyCustomColors();
+    updateIconLabels();
 
-    // ボタンクリック → 描画 & ダウンロード
+    // ボタン → 描画 & ダウンロード
     generateBtn.addEventListener('click', () => {
       drawIntroCard();
-
       const dataURL = canvas.toDataURL('image/png');
       downloadLink.href = dataURL;
       downloadLink.download = 'self_intro_card.png';
       downloadLink.classList.remove('hidden');
-      downloadLink.click(); // 自動ダウンロード
+      downloadLink.click();
     });
 
-    // 入力が変わったらプレビューだけ更新（軽くリアルタイム感）
-    ['nicknameInput', 'ageSelect', 'ageHidden', 'locationInput', 'locationHidden',
-     'hobbyInput', 'gameInput', 'messageInput'].forEach(id => {
+    // 入力が変わったらプレビュー更新
+    [
+      'nicknameInput', 'ageSelect', 'ageHidden', 'locationInput', 'locationHidden',
+      'hobbyInput', 'gameInput', 'messageInput'
+    ].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener('input', drawIntroCard);
       el.addEventListener('change', drawIntroCard);
     });
 
-    themeSelect.addEventListener('change', drawIntroCard);
+    themeSelect.addEventListener('change', () => {
+      drawIntroCard();
+    });
     color1Input.addEventListener('input', drawIntroCard);
     color2Input.addEventListener('input', drawIntroCard);
+
+    // アイコン位置・スケールのスライダー
+    [iconPosXInput, iconPosYInput, iconScaleInput].forEach(el => {
+      el.addEventListener('input', () => {
+        updateIconLabels();
+        drawIntroCard();
+      });
+    });
   </script>
 </body>
 </html>
